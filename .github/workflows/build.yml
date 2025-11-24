@@ -27,8 +27,10 @@ jobs:
           mkdir -p coverage
           docker run --rm \
             -v ${{ github.workspace }}/coverage:/app/coverage \
+            -w /app \
             calc-python:latest \
-            pytest --cov=src --cov-report=xml:/app/coverage/coverage.xml --cov-branch
+            bash -lc "export PYTHONPATH=/app && pytest --cov=src --cov-report=xml:/app/coverage/coverage.xml --cov-branch"
+
 
       # SonarQube Scan
       - name: SonarQube Scan
