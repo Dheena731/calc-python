@@ -15,19 +15,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for SonarQube analysis
+          fetch-depth: 0
 
-      # Install .NET for NUnit tests
+      # Start Python FastAPI server
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FastAPI Dependencies
+        run: |
+          pip install fastapi uvicorn
+
+      - name: Start FastAPI Server
+        run: |
+          nohup uvicorn src.main:app --host 0.0.0.0 --port 8000 &
+
+      - name: Wait for API to start
+        run: |
+          for i in {1..12}; do
+            if curl -s http://localhost:8000/add?a=1\&b=1 > /dev/null; then
+              echo "API is up!"
+              break
+            fi
+            echo "Waiting for API..."
+            sleep 1
+          done
+
+      # .NET Tests
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # Run NUnit Tests
       - name: Run Tests
         run: dotnet test tests/Tests.csproj --logger "trx;LogFileName=test_results.trx"
 
-      # Run SonarQube Scan
+      # SonarQube Scan
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
