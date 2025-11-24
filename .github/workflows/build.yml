@@ -32,6 +32,7 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)/src
           pytest --cov=src --cov-report=xml
+          pytest --cov=src --cov-report=html
 
       # SonarQube Scan with Python coverage
       - name: SonarQube Scan
@@ -39,3 +40,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_SCANNER_OPTS: "-Dsonar.python.coverage.reportPaths=coverage.xml"
+
