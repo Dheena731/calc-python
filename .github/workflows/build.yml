@@ -1,4 +1,4 @@
-name: Build
+name: CI
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  sonarqube:
-    name: SonarQube
+  test-and-scan:
+    name: Test & SonarQube
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +17,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Python Setup
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -27,17 +26,13 @@ jobs:
         run: |
           pip install fastapi uvicorn pytest pytest-cov httpx
 
-      # Run PyTest with coverage
       - name: Run tests with coverage
         run: |
-          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          export PYTHONPATH=$(pwd)/src
           pytest --cov=src --cov-report=xml
-          pytest --cov=src --cov-report=html
 
-      # SonarQube Scan with Python coverage
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_SCANNER_OPTS: "-Dsonar.python.coverage.reportPaths=coverage.xml"
-
