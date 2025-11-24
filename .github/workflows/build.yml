@@ -1,11 +1,21 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
 jobs:
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Required for SonarQube analysis
 
       # Install .NET for NUnit tests
       - name: Setup .NET
@@ -17,7 +27,7 @@ jobs:
       - name: Run Tests
         run: dotnet test --logger "trx;LogFileName=test_results.trx"
 
-      # SonarQube Scan
+      # Run SonarQube Scan
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
