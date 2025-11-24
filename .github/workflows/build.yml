@@ -30,6 +30,8 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests and generate coverage XML
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           mkdir -p coverage
           # produce coverage XML at coverage/coverage.xml expected by Sonar

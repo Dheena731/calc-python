@@ -1,27 +1,30 @@
-# Use official Python 3.11 image
-FROM python:3.11-slim
+# ---- builder ----
+FROM python:3.11-slim AS builder
+WORKDIR /build
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential gcc && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+COPY requirements.txt .
+RUN python -m pip install --upgrade pip wheel \
+    && pip wheel --no-deps --wheel-dir /wheels -r requirements.txt
+
+# ---- runtime ----
+FROM python:3.11-slim AS runtime
 WORKDIR /app
 
-# Copy requirements if you have a requirements.txt
-# Otherwise install packages directly
-COPY requirements.txt .
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
-    
-COPY src/ ./src
-COPY tests/ ./tests
+RUN useradd -m appuser
 
-# Set PYTHONPATH
+COPY --from=builder /wheels /wheels
+COPY requirements.txt .
+RUN python -m pip install --upgrade pip \
+    && pip install --no-index --find-links=/wheels -r requirements.txt \
+    && rm -rf /wheels
+
+COPY src/ ./src
 ENV PYTHONPATH=/app/src
 
-# Expose port for FastAPI
+USER appuser
 EXPOSE 8000
 
-# Default command to run FastAPI
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use Gunicorn for multiple workers in production (adjust worker count as needed)
+CMD ["gunicorn", "src.main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--workers", "3"]
