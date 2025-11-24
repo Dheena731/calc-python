@@ -25,7 +25,7 @@ jobs:
 
       # Run NUnit Tests
       - name: Run Tests
-        run: dotnet test --logger "trx;LogFileName=test_results.trx"
+        run: dotnet test tests/Tests.csproj --logger "trx;LogFileName=test_results.trx"
 
       # Run SonarQube Scan
       - name: SonarQube Scan
