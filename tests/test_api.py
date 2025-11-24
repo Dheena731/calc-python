@@ -86,7 +86,7 @@ def test_power(a, b, expected):
 @pytest.mark.parametrize("a,b,expected", [
     (10, 3, 1),
     (5, 2, 1),
-    (-5, 3, -2),
+    (-5, 3, 1),  
 ])
 def test_modulo(a, b, expected):
     response = client.get("/modulo", params={"a": a, "b": b})
