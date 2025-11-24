@@ -1,4 +1,4 @@
-name: Build
+name: Build with Docker
 
 on:
   push:
@@ -17,26 +17,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Python Setup
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      # Build Docker Image
+      - name: Build Docker Image
+        run: docker build -t calc-python:latest .
 
-      - name: Install Dependencies
+      # Run tests inside Docker and generate coverage
+      - name: Run Tests in Docker
         run: |
-          pip install fastapi uvicorn pytest pytest-cov httpx
+          mkdir -p coverage
+          docker run --rm \
+            -v ${{ github.workspace }}/coverage:/app/coverage \
+            calc-python:latest \
+            pytest --cov=src --cov-report=xml:/app/coverage/coverage.xml --cov-branch
 
-      # Run PyTest with coverage
-      - name: Run tests with coverage
-        run: |
-          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-          pytest --cov=src --cov-report=xml:coverage.xml --cov-branch
-
-      # SonarQube Scan with Python coverage
+      # SonarQube Scan
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_SCANNER_OPTS: "-Dsonar.python.coverage.reportPaths=coverage.xml"
-
+          SONAR_SCANNER_OPTS: "-Dsonar.python.coverage.reportPaths=coverage/coverage.xml"
