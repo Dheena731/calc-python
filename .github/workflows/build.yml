@@ -17,8 +17,8 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v6
         with:
           args: >
-            -Dsonar.projectKey=dharmak47_Calc-Python
-            -Dsonar.organization=dharmak47
+            -Dsonar.projectKey=Dheena731_calc-python
+            -Dsonar.organization=dheena731
             -Dsonar.sources=.
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
